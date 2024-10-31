@@ -20,9 +20,14 @@ return new class extends Migration
             $table->rememberToken();
             $table->timestamps();
             $table->enum('role', ['admin', 'kader', 'tenaga_kesehatan', 'orang_tua']);
-            // $table->foreignId('posyandu_id')->nullable()->constrained()->onDelete('set null');
             $table->boolean('verified')->default(false);
+
+            $table->unsignedBigInteger('posyandu_id')->nullable(); 
+
+            $table->foreign('posyandu_id')->references('id')->on('posyandus')->onDelete('set null');
         });
+
+        DB::statement('ALTER TABLE users ENGINE = InnoDB');
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {
             $table->string('email')->primary();

@@ -50,7 +50,7 @@ class RegisterController extends Controller
             ], 201);
         }
 
-        //return JSON process insert failed 
+        // return JSON process insert failed 
         return response()->json([
             'success' => false,
         ], 409);
