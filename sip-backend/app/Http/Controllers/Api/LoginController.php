@@ -38,11 +38,13 @@ class LoginController extends Controller
             ], 401);
         }
 
-        // if auth success
+        // if auth success, tambahkan `data` key
         return response()->json([
             'success' => true,
-            'user'    => auth()->guard('api')->user(),    
-            'token'   => $token   
+            'data'    => [
+                'user'  => auth()->guard('api')->user(),
+                'token' => $token,
+            ]  
         ], 200);
     }
 }

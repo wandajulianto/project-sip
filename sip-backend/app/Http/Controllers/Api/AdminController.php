@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Models\VerificationRequest;
 use App\Models\Posyandu;
 use App\Models\User;
 use App\Http\Controllers\Controller;
@@ -135,6 +136,10 @@ class AdminController extends Controller
     {
         $user = User::where('role', '!=', 'admin')->find($id);
 
+        if (!$user) {
+            return response()->json(['message' => 'Pengguna tidak ditemukan'], 404);
+        }    
+
         $user->verified = true;
 
         $user->save();
@@ -159,32 +164,59 @@ class AdminController extends Controller
     {
         $user = auth()->user();
 
+        // Set validasi input
         $validator = Validator::make($request->all(), [
-            'name' => 'string|max:255',
-            'email' => 'string|email|unique:users,email,' . $user->id, // Tambahkan koma sebelum ID user
+            'name'      => 'string|max:255',
+            'email'     => 'string|email|unique:users,email,' . $user->id, // Tambahkan koma sebelum ID user
+            'phone'     => 'nullable|string|max:15',
+            'address'   => 'nullable|string',
+            'photo'     => 'nullable|image|mime:jpg,jpeg,png|max:2048',
             'password' => 'nullable|string|min:8|confirmed',
         ]);
 
-        // Cek jika validasi gagal
-        if ($validator->fails()) {
-            return response()->json([
-                'errors' => $validator->errors(),
-                'message' => 'Validasi gagal'
-            ], 422);
-        }
-
-        // Update profil pengguna
+        /// Update profil pengguna
         $user->name = $request->name ?? $user->name;
         $user->email = $request->email ?? $user->email;
+        $user->phone = $request->phone ?? $user->phone;
+        $user->address = $request->address ?? $user->address;
 
         if ($request->password) {
             $user->password = Hash::make($request->password);
         }
 
+        // Proses upload foto profile (opsional)
+        if ($request->hasFile('photo')) {
+            $photoPath = $request->file('photo')->store('photos', 'public');
+            $user->photo = $photoPath;
+        }
+
         $user->save();
 
         return response()->json([
-            'message' => 'Profil berhasil diupdate'
+            'message' => 'Profil berhasil diupdate',
+            'user'    => $user
         ], 200);
+    }
+
+    // Tampilkan list permintaan verifikasi user
+    public function listVerificationRequests()
+    {
+        $requests = VerificationRequest::whereNull('approved')->with('user')->get();
+
+        return response()->json([
+            'requests' => $requests
+        ]);
+    }
+
+    // Tolak permintaan verifikasi user
+    public function rejectUser($id)
+    {
+        $request = VerificationRequest::where('user_id', $id)->whereNull('approved')->first();
+        if ($request) {
+            $request->approved = false;
+            $request->save();
+            return response()->json(['message' => 'Permintaan verifikasi ditolak'], 200);
+        }
+        return response()->json(['message' => 'Permintaan tidak ditemukan'], 404);
     }
 }

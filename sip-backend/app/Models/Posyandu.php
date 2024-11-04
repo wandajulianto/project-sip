@@ -13,4 +13,10 @@ class Posyandu extends Model
      * @var array
      */
     protected $fillable = ['name', 'address'];
+
+    // Relasi dengan model Balita
+    public function balitas()
+    {
+        return $this->hasMany(Balita::class);
+    }
 }

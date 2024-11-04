@@ -23,7 +23,6 @@ class RegisterController extends Controller
             'name'        => 'required|string|max:255',
             'email'       => 'required|string|email|max:255|unique:users',
             'password'    => 'required|string|min:8|confirmed',
-            'role'        => 'required|in:admin,kader,tenaga_kesehatan,orang_tua',
             'posyandu_id' => 'nullable|exists:posyandu,id', 
         ]);
 
@@ -32,12 +31,12 @@ class RegisterController extends Controller
             return response()->json($validator->errors(), 422);
         }
 
-        // create user
+        // create user, defaul role = 'orang_tua'
         $user = User::create([
             'name'        => $request->name,
             'email'       => $request->email,
             'password'    => Hash::make($request->password),
-            'role'        => $request->role,
+            'role'        => 'orang_tua',
             'posyandu_id' => $request->posyandu_id,
             'verified'    => false,
         ]);

@@ -66,4 +66,15 @@ class User extends Authenticatable implements JWTSubject
     {
         return [];
     }
+
+    public function agendas()
+    {
+        return $this->hasMany(Agenda::class, 'created_by');
+    }
+
+    // Relasi dengan model Balita
+    public function balita()
+    {
+        return $this->hasMany(Balita::class, 'orang_tua_id');
+    }
 }
